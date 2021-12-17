@@ -1,7 +1,9 @@
-    
+
 % Script entry point
 function Script2Buttons(fullFileName)
-    
+    clc
+    clf
+    clear
     % If Filename not specified as argument then
     if nargin < 1
         % Use dialog to choose image file
@@ -28,8 +30,10 @@ function Script2Buttons(fullFileName)
 end
 
 function do_work1()
-    %clear, clc
- 
+    clear, clc
+    axis('auto');
+    xticks auto;
+    xticklabels auto;
     s =[8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12];
     V = [25.75, 27.25, 29.5, 31.0, 32.5, 34.0, 35.5, 37.75, 39.25];
 
@@ -49,7 +53,7 @@ function do_work1()
         Vn = f(x,s) +  valDistance; % ??????? ???? ???????? ?????
 
         plot(s*contrastAmount,Vn,':r') % ??????
-        legend('Дані','Апроксимація',2)
+        legend('Дані','Апроксимація')
 
         d = sum(V-Vn) % ???? ?????????
         ds = sum((V-Vn).^2) % ???? ????????? ?????????
@@ -84,25 +88,39 @@ function do_work1()
         'String', 'Load', 'Callback', @do_load_Callback);
     
     function do_load_Callback(src, evt)
+        axis('auto');
+        cla,clc
         % Use dialog to choose xls file
-        [file, folder] = uigetfile({'*.xls';'*.*'},'Select the Ms.Excel file');
+        [file, folder] = uigetfile({'*.xls; *.xlsx';'*.*'},'Select the Ms.Excel file');
         if isequal(file,0) || isequal(folder,0)
             return;
         end
         inputFullFileName = fullfile(folder, file);
 
         %clear all;
-        s=xlsread(inputFullFileName,1,'A2:A1000');
-        V=xlsread(inputFullFileName,1,'B2:B1000');
+        try
+            s=xlsread(inputFullFileName,1,'A2:A1000');
+            V=xlsread(inputFullFileName,1,'B2:B1000');
+            if (length(s) ~= length(V))
+                disp("error: s ~= V");
+                s=0;
+                V=0;
+                return
+            end
+        catch
+            do_load_Callback(0,0);
+        end
         draw()
     end
     
 end
 
 function ret = do_work2()
-    
+    clear, clc
+    axis('auto');
+    xticks auto;
+    xticklabels auto;
     %y=a*exp^m*x 
-    
     x = 0;
     y = 0;
     
@@ -113,52 +131,60 @@ function ret = do_work2()
     
     function draw()
         cla
-    
-        N=length(x);
-
         figure(1);
-        plot(x,y), grid on;
+        grid on;
         hold on;
-        xx = 0.896;
-
-
-        % ????????????
-        y_=log(y);
-
-        sum1 = 0;
-        sum2 = 0;
-        sum3 = 0;
-        sum4 = 0;
-        for i=1:1:N
-            sum1 = sum1 + x(i);
-            sum2 = sum2 + y_(i);
-            sum3 = sum3 + x(i)^2;
-            sum4 = sum4 + x(i)*y_(i);
+        try
+            N=length(x);
+            figure(1);
+            plot(x,y), grid on;
+            hold on;
+            xx = 0.896;
+    
+    
+            % ????????????
+            y_=log(y);
+    
+            sum1 = 0;
+            sum2 = 0;
+            sum3 = 0;
+            sum4 = 0;
+            for i=1:1:N
+                sum1 = sum1 + x(i);
+                sum2 = sum2 + y_(i);
+                sum3 = sum3 + x(i)^2;
+                sum4 = sum4 + x(i)*y_(i);
+            end
+            Mx  = sum1/N;
+            Mx2 = sum3/N;
+            My  = sum2/N;
+            Mxy = sum4/N;
+    
+            A = [Mx2 Mx
+                Mx 1];
+            B = [Mxy
+                My];
+    
+            X = A\B;
+            a = X(1),
+            b = X(2),
+            m = a;
+            a = exp(b);
+    
+            y__ = a*exp(m*x);
+    
+            figure(1);
+            plot(x*contrastAmount,y__ +  valDistance,'r'), grid on;
+            legend('1','2');
+            yy = a*exp(m*xx);
+            Y(3) = yy;
+            %-
+        catch
+            bar(y);
+            xticks([1:1:length(x)]);
+            xticklabels(x);
+            legend off;
         end
-        Mx  = sum1/N;
-        Mx2 = sum3/N;
-        My  = sum2/N;
-        Mxy = sum4/N;
-
-        A = [Mx2 Mx
-            Mx 1];
-        B = [Mxy
-            My];
-
-        X = A\B;
-        a = X(1),
-        b = X(2),
-        m = a;
-        a = exp(b);
-
-        y__ = a*exp(m*x);
-
-        figure(1);
-        plot(x*contrastAmount,y__ +  valDistance,'r'), grid on;
-        legend('1','2',-1);
-        yy = a*exp(m*xx);
-        Y(3) = yy;
-        %-
     end
     
     hp = uipanel('Title','', 'Position',[1/2 0.93 1/2 1/15]);
@@ -189,17 +215,27 @@ function ret = do_work2()
         'String', 'Save', 'Callback', @do_save_Callback);
 
     function do_load_Callback(src, evt)
+        axis('auto');
+        cla,clc
+        xticks auto;
+        xticklabels auto;
+        %clear
+        xticks auto;
+        xticklabels auto;
         % Use dialog to choose xls file
-        [file, folder] = uigetfile({'*.xls';'*.*'},'Select the Ms.Excel file');
+        [file, folder] = uigetfile({'*.xls; *.xlsx';'*.*'},'Select the Ms.Excel file');
         if isequal(file,0) || isequal(folder,0)
             return;
         end
         inputFullFileName = fullfile(folder, file);
 
         %clear all;
-        x=xlsread(inputFullFileName,1,'A2:A7');
-        y=xlsread(inputFullFileName,1,'B2:B7');
-        draw()
+        x=xlsread(inputFullFileName,'A2:A7');
+        if (length(x)==0)
+            [~,x]=xlsread(inputFullFileName,'A2:A7');
+        end
+        y=xlsread(inputFullFileName,'B2:B7');
+        draw();
     end
     function do_save_Callback(src, evt)
         % Use dialog to choose xls file
@@ -208,8 +244,8 @@ function ret = do_work2()
             return;
         end
         outputFullFileName = fullfile(folder, file);
-
-        xlswrite(outputFullFileName,Y,1,'D3');
+        xlswrite(outputFullFileName,x,string,'A2:A7');
+        xlswrite(outputFullFileName,y,'B2:B7')
     end
     
 end
